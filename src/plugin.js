@@ -29,7 +29,7 @@ class Bigpausebutton extends Plugin {
   constructor(player, options) {
     // the parent class will add player under this.player
     super(player);
-
+    
     var Component = videojs.getComponent('BigPlayButton');
     var videoJsBigPauseButton = videojs.extend(Component, {
       constructor: function (player, options){
@@ -39,8 +39,13 @@ class Bigpausebutton extends Plugin {
         this.removeClass('vjs-big-play-button');
       },
       handleClick: function(){
-        player.pause();
-        player.removeChild('videoJsBigPauseButton');
+        this.player().pause();
+        this.player().addClass('vjs-play-paused');
+        
+        this.player().one('play', function(){
+          this.removeClass('vjs-play-paused');
+        })
+        this.player().removeChild('videoJsBigPauseButton');
       }
     }) 
   
@@ -51,7 +56,10 @@ class Bigpausebutton extends Plugin {
     this.player.ready(() => {
       this.player.addClass('vjs-bigpausebutton');
       this.player.on('touchstart', e => {
-          if(this.player.paused() || e.touches.length != 1){
+          if(this.player.paused() || 
+            (this.player.muted() && this.player.getChild('VideoJsBigMuteButton') )/*don't show if we show unmute button*/ || 
+            e.touches.length != 1) {
+              
             return false;
           }
           if(typeof this.player.getChild('VideoJsBigPauseButton') == 'undefined' || !this.player.getChild('VideoJsBigPauseButton')){
